@@ -27,7 +27,6 @@ class Value extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obx performs dark magic to find the needed listeners to rebuild on changes
     return Obx(() => LayoutValue(value: c.count.value));
   }
 }

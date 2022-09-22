@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../async-example.dart';
+
 final counterProvider = StateProvider((ref) => 0);
 
 final isEvenProvider = Provider((ref) {
@@ -15,11 +17,11 @@ class RiverpodExample extends ConsumerWidget {
   const RiverpodExample({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ProviderScope(
+    return const ProviderScope(
         child: Layout(
-      actions: const Actions(),
+      actions: Actions(),
       counter: SideEffectOnStateChange(
-        child: const Value(),
+        child: Value(),
       ),
       title: "Riverpod",
     ));
@@ -54,7 +56,7 @@ class Actions extends ConsumerWidget {
 class SideEffectOnStateChange extends HookConsumerWidget {
   final Widget child;
 
-  SideEffectOnStateChange({required this.child});
+  const SideEffectOnStateChange({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,6 +76,35 @@ class SideEffectOnStateChange extends HookConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 20),
       color: color.value,
       child: Column(children: [Text(isEven ? "Even" : "Odd"), child]),
+    );
+  }
+}
+
+final pokemonProvider = FutureProvider((ref) {
+  // We could listen to other provider, e.g. filters, eith ref.watch
+
+  return getPokemon();
+});
+
+class AsyncExampleWithProvider extends ConsumerWidget {
+  const AsyncExampleWithProvider({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pokemon = ref.watch(pokemonProvider);
+    return Scaffold(
+      body: SafeArea(
+          child: pokemon.when(
+              data: (pokemon) => pokemon.isEmpty
+                  ? const Text("Ingen pokemon :(")
+                  : ListView(
+                      children: pokemon
+                          .map((name) => ListTile(
+                                title: Text(name),
+                              ))
+                          .toList()),
+              error: (error, trace) => Text(error.toString()),
+              loading: () => const CircularProgressIndicator())),
     );
   }
 }
